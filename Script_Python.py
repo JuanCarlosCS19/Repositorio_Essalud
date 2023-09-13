@@ -6,7 +6,7 @@ st.set_page_config(page_title="Analisis Efectividad Essalud", page_icon=":bar_ch
 
 # Supongamos que tienes un DataFrame llamado df que contiene tus datos
 # Si aún no tienes un DataFrame, puedes cargar tus datos desde un archivo CSV o Excel.
-df = pd.read_excel("C:\Disco_Auxiliar\Proyecto_Ciencia_Datos\Estudio_Essalud\Repositorio_Essalud\Perfil de antibiograma.xlsx", sheet_name=0)
+df = pd.read_excel("https://github.com/JuanCarlosCS19/Repositorio_Essalud/blob/main/Perfil%20de%20antibiograma.xlsx?raw=true", sheet_name=0)
 
 # Elimina todas las columnas que contienen "CIM" en su nombre
 columnas_cim = [col for col in df.columns if "CIM" in col]
