@@ -104,13 +104,11 @@ df_selection = df_selection.sort_values(by=['Recuento'], ascending=False)
 
 st.dataframe(df_selection)
 
-css = """
-<style>
-body {
-    background-color: #FF0000; /* Cambia el código de color aquí */
-}
-</style>
-"""
-
-# Agregar el CSS personalizado
-st.markdown(css, unsafe_allow_html=True)
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
