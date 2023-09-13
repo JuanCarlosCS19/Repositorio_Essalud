@@ -6,7 +6,7 @@ st.set_page_config(page_title="Analisis Efectividad Essalud", page_icon=":bar_ch
 
 # Supongamos que tienes un DataFrame llamado df que contiene tus datos
 # Si aún no tienes un DataFrame, puedes cargar tus datos desde un archivo CSV o Excel.
-df = pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTnluyDGAkS8o-IezNn9dAEK9KKJa8ZkdbsLM6ijhyhlnm6-b5FEiXdfVPMsEL1qg/pub?gid=1667552343&single=true&output=csv", sheet_name=0)
+df = pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTnluyDGAkS8o-IezNn9dAEK9KKJa8ZkdbsLM6ijhyhlnm6-b5FEiXdfVPMsEL1qg/pub?gid=1667552343&single=true&output=csv")
 
 # Elimina todas las columnas que contienen "CIM" en su nombre
 columnas_cim = [col for col in df.columns if "CIM" in col]
