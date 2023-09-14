@@ -6,7 +6,7 @@ st.set_page_config(page_title="Analisis Efectividad Essalud", page_icon=":bar_ch
 
 # Supongamos que tienes un DataFrame llamado df que contiene tus datos
 # Si aún no tienes un DataFrame, puedes cargar tus datos desde un archivo CSV o Excel.
-df = pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTnluyDGAkS8o-IezNn9dAEK9KKJa8ZkdbsLM6ijhyhlnm6-b5FEiXdfVPMsEL1qg/pub?gid=1667552343&single=true&output=csv")
+df = pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTnluyDGAkS8o-IezNn9dAEK9KKJa8ZkdbsLM6ijhyhlnm6-b5FEiXdfVPMsEL1qg/pub?gid=2015743116&single=true&output=csv")
 
 # Elimina todas las columnas que contienen "CIM" en su nombre
 columnas_cim = [col for col in df.columns if "CIM" in col]
@@ -35,74 +35,122 @@ df_vertical['Interpretacion_Futuro'].replace({'S*': 'S', 'R*': 'R', 'I': 'I', 'I
 df_vertical['Medicamento_Antibiotico'] = df_vertical['Medicamento_Antibiotico'].str.replace(' Interpretación', '')
 tabla_dinamica = pd.pivot_table(df_vertical,
                                  values='Fecha de muestra',  # Puedes seleccionar cualquier columna numérica
-                                 index=['Microorganismo', 'Interpretacion_Futuro', 'Medicamento_Antibiotico'],
+                                 index=['Origen','Microorganismo', 'Interpretacion_Futuro', 'Medicamento_Antibiotico'],
                                  aggfunc='count')
 
 # Resetear el índice para que los índices se conviertan en columnas
 tabla_dinamica = tabla_dinamica.reset_index()
 tabla_dinamica = tabla_dinamica.rename(columns={'Fecha de muestra': 'Recuento'})
 tabla_dinamica = tabla_dinamica[tabla_dinamica["Interpretacion_Futuro"]!="-"]
+df_filtered_v = tabla_dinamica
+st.sidebar.header("Aplique los filtros aqui:")
+origen = st.sidebar.multiselect(
+        "Seleccione el origen:",
+        options=df_filtered_v["Origen"].unique()
+    )
+medicamento = st.sidebar.multiselect(
+        "Seleccione el medicamento:",
+        options=df_filtered_v["Medicamento_Antibiotico"].unique()
+    )
+microorganismo = st.sidebar.multiselect(
+        "Seleccione el microorganismo:",
+        options=df_filtered_v["Microorganismo"].unique()
+    )
+interpretacion = st.sidebar.multiselect(
+        "Seleccione la interpretacion:",
+        options=df_filtered_v["Interpretacion_Futuro"].unique()
+    )
 
-st.header("ESSALUD", divider="grey")
-st.title("Analisis Medicamentos para Microorganismos")
-st.write("Tabla General de Datos")
+if origen:
+        df = df[df["Origen"].isin(origen)]
 
-# Checkbox para mostrar/ocultar el DataFrame general
-mostrar_dataframe = st.checkbox("Mostrar Tabla General de Datos", value=False)
 
-if mostrar_dataframe:
+with st.container():
+    st.title("ESSALUD - MICROB")
     
 
-    ordenar_por = st.selectbox("Ordenar por:", df_vertical.columns)
-    df_sorted = df_vertical.sort_values(by=[ordenar_por])
+    # Crear un contenedor con dos columnas
+        
+    st.header("", divider="grey")
+    st.title("Medicamentos mas Resistentes-Sensibles")
+    st.write("Clasificacion R: RESISTENTE - S: SENSIBLE")
+    st.write(f"Cantidad de registros para el ORIGEN :                   **{df.shape[0]}**", unsafe_allow_html=True)
 
-    # Mostrar la tabla en Streamlit
-    st.dataframe(df_sorted)
-# Si el checkbox está seleccionado, muestra el DataFrame
-# filtro = st.text_input("Filtrar por Medicamento Antibiótico:", "")
-# filtro_microorganismo = st.text_input("Filtrar por Microorganismo", "")
-# filtro_interpretacion = st.text_input("Filtrar por Interpretacion", "")
+    # Checkbox para mostrar/ocultar el DataFrame general
+    # mostrar_dataframe = st.checkbox("Mostrar Tabla General de Datos", value=False)
+
+    # if mostrar_dataframe:
+        
+
+    #     ordenar_por = st.selectbox("Ordenar por:", df_vertical.columns)
+    #     df_sorted = df_vertical.sort_values(by=[ordenar_por])
+
+    #     # Mostrar la tabla en Streamlit
+    #     st.dataframe(df_sorted)
+    # Si el checkbox está seleccionado, muestra el DataFrame
+    # filtro = st.text_input("Filtrar por Medicamento Antibiótico:", "")
+    # filtro_microorganismo = st.text_input("Filtrar por Microorganismo", "")
+    # filtro_interpretacion = st.text_input("Filtrar por Interpretacion", "")
 
 
-# Aplicar filtros secuencialmente a la tabla dinámica
-df_filtered_v = tabla_dinamica
+    # Aplicar filtros secuencialmente a la tabla dinámica
+    
 
-# if filtro:
-#     df_filtered_v = df_filtered_v[df_filtered_v['Medicamento_Antibiotico'].str.contains(filtro, case=False)]
+    # if filtro:
+    #     df_filtered_v = df_filtered_v[df_filtered_v['Medicamento_Antibiotico'].str.contains(filtro, case=False)]
 
-# if filtro_microorganismo:
-#     df_filtered_v = df_filtered_v[df_filtered_v['Microorganismo'].str.contains(filtro_microorganismo, case=False)]
+    # if filtro_microorganismo:
+    #     df_filtered_v = df_filtered_v[df_filtered_v['Microorganismo'].str.contains(filtro_microorganismo, case=False)]
 
-# if filtro_interpretacion:
-#     df_filtered_v = df_filtered_v[df_filtered_v['Interpretacion_Futuro'].str.contains(filtro_interpretacion, case=False)]
+    # if filtro_interpretacion:
+    #     df_filtered_v = df_filtered_v[df_filtered_v['Interpretacion_Futuro'].str.contains(filtro_interpretacion, case=False)]
 
-# # Ordenar la tabla dinámica por el recuento en orden descendente
-# df_filtered_v = df_filtered_v.sort_values(by=['Recuento'], ascending=False)
+    # # Ordenar la tabla dinámica por el recuento en orden descendente
+    # df_filtered_v = df_filtered_v.sort_values(by=['Recuento'], ascending=False)
 
-# # Mostrar la tabla dinámica filtrada y ordenada
-# st.write("Tabla Dinámica de Recuento (Ordenada por Recuento Descendente)")
-# st.dataframe(df_filtered_v)
+    # # Mostrar la tabla dinámica filtrada y ordenada
+    # st.write("Tabla Dinámica de Recuento (Ordenada por Recuento Descendente)")
+    # st.dataframe(df_filtered_v)
 
-st.sidebar.header("Aplique los filtros aqui:")
-medicamento = st.sidebar.multiselect(
-    "Seleccione el medicamento:",
-    options=df_filtered_v["Medicamento_Antibiotico"].unique()
-)
-microorganismo = st.sidebar.multiselect(
-    "Seleccione el microorganismo:",
-    options=df_filtered_v["Microorganismo"].unique()
-)
-interpretacion = st.sidebar.multiselect(
-    "Seleccione la interpretacion:",
-    options=df_filtered_v["Interpretacion_Futuro"].unique()
-)
+    
+    
 
-df_selection = df_filtered_v.query(
-    "Medicamento_Antibiotico == @medicamento | Microorganismo == @microorganismo | Interpretacion_Futuro == @interpretacion"
-)
-df_selection = df_selection.sort_values(by=['Recuento'], ascending=False)
+    df_selection = df_filtered_v
+    if origen:
+        df_selection = df_selection[df_selection["Origen"].isin(origen)]
+    if medicamento:
+        df_selection = df_selection[df_selection["Medicamento_Antibiotico"].isin(medicamento)]
+    if microorganismo:
+        df_selection = df_selection[df_selection["Microorganismo"].isin(microorganismo)]
+    if interpretacion:
+        df_selection = df_selection[df_selection["Interpretacion_Futuro"].isin(interpretacion)]
 
-st.dataframe(df_selection)
+    df_selection = df_selection.sort_values(by=['Recuento','Interpretacion_Futuro'], ascending=[False, False])
+    
+    st.dataframe(df_selection)
+    df_sens_resis = df_selection.copy()
+    df_sens_resis = df_sens_resis[(df_sens_resis["Interpretacion_Futuro"] == "R") | (df_sens_resis["Interpretacion_Futuro"] == "S")]
+    df_sensible = df_sens_resis[df_sens_resis["Interpretacion_Futuro"]=="S"]
+    df_resistente = df_sens_resis[df_sens_resis["Interpretacion_Futuro"]=="R"]
+    col1, col2 = st.columns(2)
+    try:
+        valor_mas_sensible=df_sensible.iloc[0,3]
+    except:
+        valor_mas_sensible = "No se tienen datos para medicamentos sensibles"
+
+    try:
+        valor_mas_resistente=df_resistente.iloc[0,3]
+    except:
+        valor_mas_resistente = "No se tienen datos para medicamentos resistentes"
+    # Columna 1
+    with col1:
+        st.header("MEDICAMENTO MAS SENSIBLE")
+        st.write(f"EL MEDICAMENTO MAS SENSIBLE ES: {valor_mas_sensible}")
+
+    # Columna 2
+    with col2:
+        st.header("MEDICAMENTO MAS RESISTENTE")
+        st.write(f"EL MEDICAMENTO MAS RESISTENTE ES: {valor_mas_resistente}")
 
 hide_st_style = """
             <style>
