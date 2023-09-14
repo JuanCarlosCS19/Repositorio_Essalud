@@ -98,7 +98,7 @@ interpretacion = st.sidebar.multiselect(
 )
 
 df_selection = df_filtered_v.query(
-    "Medicamento_Antibiotico == @medicamento | Microorganismo == @microorganismo | Interpretacion_Futuro == @interpretacion"
+    "Medicamento_Antibiotico == @medicamento & Microorganismo == @microorganismo & Interpretacion_Futuro == @interpretacion"
 )
 df_selection = df_selection.sort_values(by=['Recuento'], ascending=False)
 
