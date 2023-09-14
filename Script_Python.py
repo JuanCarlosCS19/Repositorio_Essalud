@@ -112,26 +112,45 @@ with st.container():
     # st.write("Tabla Dinámica de Recuento (Ordenada por Recuento Descendente)")
     # st.dataframe(df_filtered_v)
 
-st.sidebar.header("Aplique los filtros aqui:")
-medicamento = st.sidebar.multiselect(
-    "Seleccione el medicamento:",
-    options=df_filtered_v["Medicamento_Antibiotico"].unique()
-)
-microorganismo = st.sidebar.multiselect(
-    "Seleccione el microorganismo:",
-    options=df_filtered_v["Microorganismo"].unique()
-)
-interpretacion = st.sidebar.multiselect(
-    "Seleccione la interpretacion:",
-    options=df_filtered_v["Interpretacion_Futuro"].unique()
-)
+    
+    
 
-df_selection = df_filtered_v.query(
-    "Medicamento_Antibiotico == @medicamento | Microorganismo == @microorganismo | Interpretacion_Futuro == @interpretacion"
-)
-df_selection = df_selection.sort_values(by=['Recuento'], ascending=False)
+    df_selection = df_filtered_v
+    if origen:
+        df_selection = df_selection[df_selection["Origen"].isin(origen)]
+    if medicamento:
+        df_selection = df_selection[df_selection["Medicamento_Antibiotico"].isin(medicamento)]
+    if microorganismo:
+        df_selection = df_selection[df_selection["Microorganismo"].isin(microorganismo)]
+    if interpretacion:
+        df_selection = df_selection[df_selection["Interpretacion_Futuro"].isin(interpretacion)]
 
-st.dataframe(df_selection)
+    df_selection = df_selection.sort_values(by=['Recuento','Interpretacion_Futuro'], ascending=[False, False])
+    
+    st.dataframe(df_selection)
+    df_sens_resis = df_selection.copy()
+    df_sens_resis = df_sens_resis[(df_sens_resis["Interpretacion_Futuro"] == "R") | (df_sens_resis["Interpretacion_Futuro"] == "S")]
+    df_sensible = df_sens_resis[df_sens_resis["Interpretacion_Futuro"]=="S"]
+    df_resistente = df_sens_resis[df_sens_resis["Interpretacion_Futuro"]=="R"]
+    col1, col2 = st.columns(2)
+    try:
+        valor_mas_sensible=df_sensible.iloc[0,3]
+    except:
+        valor_mas_sensible = "No se tienen datos para medicamentos sensibles"
+
+    try:
+        valor_mas_resistente=df_resistente.iloc[0,3]
+    except:
+        valor_mas_resistente = "No se tienen datos para medicamentos resistentes"
+    # Columna 1
+    with col1:
+        st.header("MEDICAMENTO MAS SENSIBLE")
+        st.write(f"EL MEDICAMENTO MAS SENSIBLE ES: {valor_mas_sensible}")
+
+    # Columna 2
+    with col2:
+        st.header("MEDICAMENTO MAS RESISTENTE")
+        st.write(f"EL MEDICAMENTO MAS RESISTENTE ES: {valor_mas_resistente}")
 
 hide_st_style = """
             <style>
