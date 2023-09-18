@@ -44,7 +44,7 @@ tabla_dinamica = tabla_dinamica.reset_index()
 tabla_dinamica = tabla_dinamica.rename(columns={'Fecha de muestra': 'Recuento'})
 tabla_dinamica = tabla_dinamica[tabla_dinamica["Interpretacion_Futuro"]!="-"]
 df_filtered_v = tabla_dinamica
-df_filtered_v.to_clipboard()
+# df_filtered_v.to_clipboard()
 # st.sidebar.header("Aplique los filtros aqui:")
 # origen = st.sidebar.multiselect(
 #         "Seleccione el origen:",
