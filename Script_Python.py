@@ -231,7 +231,7 @@ with st.container():
     else:
         df_selection_fil = df_selection_fil
 
-    df_selection_fil.to_clipboard()
+    # df_selection_fil.to_clipboard()
 
     filas = st.multiselect("Selecciona las filas:", ["Medicamento_Antibiotico","Fecha de muestra","Area","Muestra","Sexo"])
     df_selection_fil = df_selection_fil[df_selection_fil["Interpretacion_Futuro"].isin(["R","S"])]
