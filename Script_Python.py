@@ -10,6 +10,7 @@ st.set_page_config(page_title="Analisis Efectividad Essalud", page_icon=":bar_ch
 df = pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTnluyDGAkS8o-IezNn9dAEK9KKJa8ZkdbsLM6ijhyhlnm6-b5FEiXdfVPMsEL1qg/pub?gid=2015743116&single=true&output=csv")
 
 # Elimina todas las columnas que contienen "CIM" en su nombre
+df_cant = df.copy()
 columnas_cim = [col for col in df.columns if "CIM" in col]
 df = df.drop(columns=columnas_cim)
 
@@ -34,6 +35,7 @@ df_vertical['Interpretacion_Futuro'] = df_vertical['Interpretacion_Origen']
 # Realizar las transformaciones
 df_vertical['Interpretacion_Futuro'].replace({'S*': 'S', 'R*': 'R', 'I': 'I', 'IB': 'I', np.nan: '-'}, inplace=True)
 df_vertical['Medicamento_Antibiotico'] = df_vertical['Medicamento_Antibiotico'].str.replace(' Interpretación', '')
+# df_vertical.to_clipboard()
 tabla_dinamica = pd.pivot_table(df_vertical,
                                  values='Fecha de muestra',  # Puedes seleccionar cualquier columna numérica
                                  index=['Origen','Microorganismo', 'Interpretacion_Futuro', 'Medicamento_Antibiotico'],
@@ -68,7 +70,7 @@ df_filtered_v = tabla_dinamica
 
 
 with st.container():
-    st.title("ESSALUD - MICROB")
+    st.title("ESSALUD - MICROBIOLOGIA")
     
 
     # Crear un contenedor con dos columnas
@@ -81,11 +83,13 @@ with st.container():
         "Seleccione el ORIGEN:",
         options=df_filtered_v["Origen"].unique(),key="Origen_Frecuente"
     )
-    df_selection_fil = df_filtered_v
+    df_selection_fil = df_cant
     if origen_fil:
         df_selection_fil = df_selection_fil[df_selection_fil["Origen"].isin(origen_fil)]
+        df_cant = df_cant[df_cant["Origen"].isin(origen_fil)]
+
     
-    st.write(f"Cantidad de registros para el ORIGEN :                   **{df_selection_fil.shape[0]}**", unsafe_allow_html=True)
+    st.write(f"Cantidad de registros para el ORIGEN :                   **{df_cant.shape[0]}** muestras", unsafe_allow_html=True)
     microorganismo_fil = st.multiselect(
         "Seleccione el MICROORGANISMO:",
         options=df_filtered_v["Microorganismo"].unique(),key="Microorganismo_Frecuente"
@@ -179,7 +183,7 @@ with st.container():
     
     
 
-    tabla_conteo = df_selection_fil.groupby(["Origen", "Microorganismo"]).size().reset_index(name="Conteo")
+    tabla_conteo = df_cant.groupby(["Origen", "Microorganismo"]).size().reset_index(name="Conteo")
     tabla_conteo = tabla_conteo.sort_values(by="Conteo", ascending=False)
     total_filas = tabla_conteo["Conteo"].sum()
     tabla_conteo["Porcentaje"] = (tabla_conteo["Conteo"] / total_filas * 100).apply(lambda x: f'{x:.2f}%')
@@ -190,30 +194,87 @@ with st.container():
         total_filas = tabla_conteo["Conteo"].sum()
         tabla_conteo["Porcentaje"] = (tabla_conteo["Conteo"] / total_filas * 100).apply(lambda x: f'{x:.2f}%')
         top3 = tabla_conteo.nlargest(3, 'Conteo')
+        total_conteo = tabla_conteo["Conteo"].sum()
+        total_porcentaje = tabla_conteo["Porcentaje"].str.rstrip('%').astype(float).sum()
+    
+    # Crear un DataFrame para los totales
+        totales = pd.DataFrame({'Conteo': [total_conteo], 'Porcentaje': [f'{total_porcentaje:.2f}%']})
+    
+    # Concatenar el DataFrame de totales al DataFrame original
+        tabla_conteo = pd.concat([tabla_conteo, totales], ignore_index=True)
         
-        st.dataframe(tabla_conteo)
+        st.dataframe(tabla_conteo) #modificar tabla 
+
+        
+
+
+
+
+
     else:
         total_filas = tabla_conteo["Conteo"].sum()
         tabla_conteo["Porcentaje"] = (tabla_conteo["Conteo"] / total_filas * 100).apply(lambda x: f'{x:.2f}%')
         top3 = tabla_conteo.nlargest(3, 'Conteo')
+        total_conteo = tabla_conteo["Conteo"].sum()
+        total_porcentaje = tabla_conteo["Porcentaje"].str.rstrip('%').astype(float).sum()
+    
+    # Crear un DataFrame para los totales
+        totales = pd.DataFrame({'Conteo': [total_conteo], 'Porcentaje': [f'{total_porcentaje:.2f}%']})
+    
+    # Concatenar el DataFrame de totales al DataFrame original
+        tabla_conteo = pd.concat([tabla_conteo, totales], ignore_index=True)
+    
         st.dataframe(tabla_conteo)
+    df_selection_fil = df_vertical
     if top3_activate:
         df_selection_fil = df_selection_fil[df_selection_fil["Microorganismo"].isin(tabla_conteo["Microorganismo"].to_list())]
     else:
         df_selection_fil = df_selection_fil
 
-    filas = st.multiselect("Selecciona las filas:", df_selection_fil.columns)
+    df_selection_fil.to_clipboard()
+
+    filas = st.multiselect("Selecciona las filas:", ["Medicamento_Antibiotico","Fecha de muestra","Area","Muestra","Sexo"])
     df_selection_fil = df_selection_fil[df_selection_fil["Interpretacion_Futuro"].isin(["R","S"])]
+    df_selection_fil["Recuento"] = 1
+    if origen_fil:
+        df_selection_fil = df_selection_fil[df_selection_fil["Origen"].isin(origen_fil)]
+    if microorganismo_fil:
+        df_selection_fil = df_selection_fil[df_selection_fil["Microorganismo"].isin(microorganismo_fil)]
     # columnas = st.multiselect("Selecciona las columnas:", df_selection_fil.columns)
     # valor = st.selectbox("Selecciona un valor:", df_selection_fil.columns)
     try:
-        if filas:
-            tabla_dinamica = pd.pivot_table(df_selection_fil, values="Recuento", index=filas, columns="Interpretacion_Futuro", aggfunc='count')
-            tabla_dinamica = tabla_dinamica.sort_values(by='S', ascending=False)
+        if 1:
+                tabla_dinamica = pd.pivot_table(df_selection_fil, values="Recuento", index= filas, columns="Interpretacion_Futuro", aggfunc='count',fill_value=0)
+                total_general = tabla_dinamica.sum().sum()
 
-            st.write(tabla_dinamica)
-    except:
-        st.write("La tabla dinámica solicitada no funciono, seleccione como filas ORIGEN Y MEDICAMENTO_ANTIBIOTICO")
+    # Calcular los porcentajes y agregarlos a la tabla dinámica
+                tabla_porcentajes = tabla_dinamica.applymap(lambda x: f'{(x / total_general * 100):.2f}%' if x != 0 else '')
+                nuevos_nombres_columnas = {
+        'R': '% Resistente',
+        'S': '% Sensible'
+    }
+                
+                tabla_porcentajes = tabla_porcentajes.rename(columns=nuevos_nombres_columnas)
+
+    # Concatenar la tabla de porcentajes a la tabla dinámica original
+                tabla_dinamica = pd.concat([tabla_dinamica, tabla_porcentajes], axis=1)
+
+                
+                tabla_dinamica = tabla_dinamica.sort_values(by='S', ascending=False)
+                def highlight_max(s):
+                    is_max = s == s.max()
+                    background_color = 'background-color: darkred'
+                    text_color = 'color: white'
+                    styles = [background_color if v else '' for v in is_max]
+                    styles[0] += f'; {text_color}'  # Aplicar estilo de texto blanco al primer valor
+                    return styles
+
+# Aplicar el estilo condicional a las columnas donde deseas resaltar los valores más altos
+                columnas_resaltar = ['% Resistente', '% Sensible']  # Aquí puedes especificar las columnas que deseas resaltar
+                st.write(tabla_dinamica.style.apply(highlight_max, subset=columnas_resaltar))
+                
+    except:          
+        st.write("La tabla dinámica solicitada no funciono")
 
 hide_st_style = """
             <style>
