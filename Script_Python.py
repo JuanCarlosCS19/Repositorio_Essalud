@@ -242,8 +242,8 @@ with st.container():
         df_selection_fil = df_selection_fil[df_selection_fil["Microorganismo"].isin(microorganismo_fil)]
     # columnas = st.multiselect("Selecciona las columnas:", df_selection_fil.columns)
     # valor = st.selectbox("Selecciona un valor:", df_selection_fil.columns)
-    try:
-        if 1:
+    
+    if 1:
                 tabla_dinamica = pd.pivot_table(df_selection_fil, values="Recuento", index= filas, columns="Interpretacion_Futuro", aggfunc='count',fill_value=0)
                 total_general = tabla_dinamica.sum().sum()
 
@@ -259,8 +259,10 @@ with st.container():
     # Concatenar la tabla de porcentajes a la tabla dinámica original
                 tabla_dinamica = pd.concat([tabla_dinamica, tabla_porcentajes], axis=1)
 
-                
-                tabla_dinamica = tabla_dinamica.sort_values(by='S', ascending=False)
+                try:
+                    tabla_dinamica = tabla_dinamica.sort_values(by='S', ascending=False)
+                except:
+                     pass
                 def highlight_max(s):
                     is_max = s == s.max()
                     background_color = 'background-color: darkred'
@@ -271,10 +273,16 @@ with st.container():
 
 # Aplicar el estilo condicional a las columnas donde deseas resaltar los valores más altos
                 columnas_resaltar = ['% Resistente', '% Sensible']  # Aquí puedes especificar las columnas que deseas resaltar
-                st.write(tabla_dinamica.style.apply(highlight_max, subset=columnas_resaltar))
-                
-    except:          
-        st.write("La tabla dinámica solicitada no funciono")
+                if ('% Resistente' in (tabla_dinamica.columns.tolist())) and ('% Sensible' in (tabla_dinamica.columns.tolist())):
+                    st.write(tabla_dinamica.style.apply(highlight_max, subset=columnas_resaltar))
+                elif "% Resistente" in (tabla_dinamica.columns.tolist()):
+                    st.write(tabla_dinamica.style.apply(highlight_max, subset=["% Resistente"]))
+                elif "% Sensible" in (tabla_dinamica.columns.tolist()):
+                    st.write(tabla_dinamica.style.apply(highlight_max, subset=["% Sensible"]))
+
+                     
+              
+    # st.write("La tabla dinámica solicitada no funciono")
 
 hide_st_style = """
             <style>
